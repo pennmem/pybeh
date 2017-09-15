@@ -29,4 +29,4 @@ Documentation
 
 -   [QuickStart]
 
-  [QuickStart]: https://github.com/jkragel/pybeh/notebooks/pybeh%20Quick%20Start.ipynb
+  [QuickStart]: https://github.com/pennmem/pybeh/blob/master/notebooks/pybeh%20Quick%20Start.ipynb
