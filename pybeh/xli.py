@@ -49,7 +49,7 @@ def xli(intrusions=None, subjects=None, per_list=False, exclude_reps=False):
     # XLIs are any -1 in the intrusions matrix
     xlis = np.array(intrusions) == -1
     # Count the XLIs from each subject
-    result = result = [np.sum(xlis[subjects == subj, :]) for subj in usub] if not per_list \
+    result = [np.sum(xlis[subjects == subj, :]) for subj in usub] if not per_list \
         else [np.sum(xlis[subjects == subj, :]) / xlis[subjects == subj].shape[0] for subj in usub]
 
     return result
