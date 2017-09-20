@@ -43,6 +43,7 @@ def xli(intrusions=None, subjects=None, per_list=False, exclude_reps=False):
     if not isinstance(exclude_reps, bool):
         raise Exception('exclude_reps must be True or False.')
 
+    subjects = np.array(subjects)
     # Get list of unique participants (or other trial identifier)
     usub = np.unique(subjects)
     # XLIs are any -1 in the intrusions matrix

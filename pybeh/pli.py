@@ -42,6 +42,7 @@ def pli(intrusions=None, subjects=None, per_list=False, exclude_reps=True):
     if not isinstance(exclude_reps, bool):
         raise Exception('exclude_reps must be True or False.')
 
+    subjects = np.array(subjects)
     # Get list of unique participants (or other trial identifier)
     usub = np.unique(subjects)
     # PLIs are any value greater than 0 in the intrusions matrix
