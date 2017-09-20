@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-from mask_maker import make_clean_recalls_mask2d
+from pybeh.mask_maker import make_clean_recalls_mask2d
 
 
 def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
