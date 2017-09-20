@@ -1,11 +1,11 @@
 import numpy as np
 
 
-def xli(intrusions=None, subjects=None, per_list=False, exclude_reps=False):
+def pli(intrusions=None, subjects=None, per_list=False, exclude_reps=True):
     """
-    XLI   Number of extra list intrusions.
+    PLI   Number of prior list intrusions.
 
-    xlis = xli(intrusions, subjects)
+    plis = pli(intrusions, subjects)
 
     INPUTS:
         intrusions:     matrix whose elements indicate PLI if
@@ -23,12 +23,11 @@ def xli(intrusions=None, subjects=None, per_list=False, exclude_reps=False):
                         counts should be returned. Returns raw counts if False,
                         average count per list if True. (Default == False)
 
-        exclude_reps:   COMING SOON. If exclude_reps is True, each XLI word will
+        exclude_reps:   COMING SOON. If exclude_reps is True, each PLI word will
                         only be counted once per list. If False, every repeat of
-                        a given XLI word will be counted. (MATLAB default was False)
-
+                        a given PLI word will be counted. (MATLAB default was True)
     OUTPUTS:
-        xlis:           vector of total number of XLIs. Its rows are indexed
+        plis:           vector of total number of PLIs. Its rows are indexed
                         by subject.
 
     """
@@ -45,10 +44,10 @@ def xli(intrusions=None, subjects=None, per_list=False, exclude_reps=False):
 
     # Get list of unique participants (or other trial identifier)
     usub = np.unique(subjects)
-    # XLIs are any -1 in the intrusions matrix
-    xlis = np.array(intrusions) == -1
-    # Count the XLIs from each subject
-    result = result = [np.sum(xlis[subjects == subj, :]) for subj in usub] if not per_list \
-        else [np.sum(xlis[subjects == subj, :]) / xlis[subjects == subj].shape[0] for subj in usub]
+    # PLIs are any value greater than 0 in the intrusions matrix
+    plis = np.array(intrusions) > 0
+    # Count the PLIs from each subject
+    result = [np.sum(plis[subjects == subj, :]) for subj in usub] if not per_list \
+        else [np.sum(plis[subjects == subj, :]) / plis[subjects == subj].shape[0] for subj in usub]
 
     return result
