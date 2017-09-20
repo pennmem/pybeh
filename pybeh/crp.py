@@ -91,4 +91,4 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
 
     result[:, listLength - 1] = np.nan
 
-    return result
+    return result[:, listLength - lag_num - 1:listLength + lag_num]
