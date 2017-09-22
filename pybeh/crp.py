@@ -50,24 +50,24 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
         raise Exception('recalls matrix must have the same number of rows as subjects.')
     if not (lag_num > 0):
         raise ValueError('lag number needs to be positive')
-    if lag_num > listLength:
+    if lag_num >= listLength:
         raise ValueError('Lag number too big')
 
     # Convert recalls and subjects to numpy arrays
     recalls = np.array(recalls)
     subjects = np.array(subjects)
     # Get a list of unique subjects -- we will calculate a CRP for each
-    uniq_subjects = np.unique(subjects)
+    usub = np.unique(subjects)
     # Number of possible lags = (listLength - 1) * 2 + 1; e.g. a length-24 list can have lags -23 through +23
     num_lags = 2 * listLength - 1
     # Initialize array to store the CRP for each subject (or other unique identifier)
-    result = np.zeros((uniq_subjects.size, num_lags))
+    result = np.zeros((usub.size, num_lags))
     # Initialize arrays to store transition counts
     actual = np.empty(num_lags)
     poss = np.empty(num_lags)
 
     # For each subject/unique identifier
-    for i, subj in enumerate(uniq_subjects):
+    for i, subj in enumerate(usub):
         # Reset counts for each participant
         actual.fill(0)
         poss.fill(0)
