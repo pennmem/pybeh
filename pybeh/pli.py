@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def pli(intrusions=None, subjects=None, per_list=False, exclude_reps=True):
+def pli(intrusions, subjects, rec_items=None, exclude_reps=False, per_list=False):
     """
     PLI   Number of prior list intrusions.
 
@@ -19,13 +19,19 @@ def pli(intrusions=None, subjects=None, per_list=False, exclude_reps=True):
                         should be located in:
                         recall_itemnos(find(subjects==S), :)
 
+        rec_items:      A trials x recalls matrix of strings indicating which words
+                        were recalled at which output positions on each trial. Only
+                        required for excluding repetitions of the same intrusion, i.e.
+                        if exclude_reps == True.
+
+        exclude_reps:   If exclude_reps is True, each PLI word will
+                        only be counted once per list. If False, every repeat of
+                        a given PLI word will be counted. (Default == False)
+
         per_list:       Boolean indicating whether raw counts or average per-list
                         counts should be returned. Returns raw counts if False,
                         average count per list if True. (Default == False)
 
-        exclude_reps:   COMING SOON. If exclude_reps is True, each PLI word will
-                        only be counted once per list. If False, every repeat of
-                        a given PLI word will be counted. (MATLAB default was True)
     OUTPUTS:
         plis:           vector of total number of PLIs. Its rows are indexed
                         by subject.
@@ -41,14 +47,34 @@ def pli(intrusions=None, subjects=None, per_list=False, exclude_reps=True):
         raise Exception('per_list must be True or False.')
     if not isinstance(exclude_reps, bool):
         raise Exception('exclude_reps must be True or False.')
+    if exclude_reps and rec_items is None:
+        raise Exception('rec_items must be provided in order to exclude repetitions.')
 
     subjects = np.array(subjects)
     # Get list of unique participants (or other trial identifier)
     usub = np.unique(subjects)
     # PLIs are any value greater than 0 in the intrusions matrix
     plis = np.array(intrusions) > 0
-    # Count the PLIs from each subject
-    result = [np.sum(plis[subjects == subj, :]) for subj in usub] if not per_list \
-        else [np.sum(plis[subjects == subj, :]) / plis[subjects == subj].shape[0] for subj in usub]
+
+    if exclude_reps:
+        rec_items = np.array(rec_items)
+        result = np.zeros_like(usub, dtype=float)
+        for i, subj in enumerate(usub):
+            # Get PLI map from current subject
+            cur_plis = plis[subjects == subj]
+            cur_recs = rec_items[subjects == subj]
+            for j, row in enumerate(cur_plis):
+                # Identify the index of the first occurrence of each unique recall in a trial
+                _, indx = np.unique(cur_recs[j], return_index=True)
+                # Count the number of unique PLIs using these indices
+                result[i] += np.sum(row[indx])
+            # Convert raw counts to average PLIs per trial if desired
+            if per_list:
+                result[i] = result[i] / cur_plis.shape[0]
+        result = result.tolist()
+    else:
+        # Count the PLIs from each subject
+        result = [np.sum(plis[subjects == subj, :]) for subj in usub] if not per_list \
+            else [np.sum(plis[subjects == subj, :]) / plis[subjects == subj].shape[0] for subj in usub]
 
     return result
