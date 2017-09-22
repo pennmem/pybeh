@@ -24,9 +24,9 @@ def xli(intrusions, subjects, rec_items=None, exclude_reps=False, per_list=False
                         required for excluding repetitions of the same intrusion, i.e.
                         if exclude_reps == True.
 
-        exclude_reps:   COMING SOON. If exclude_reps is True, each XLI word will
-                        only be counted once per list. If False, every repeat of
-                        a given XLI word will be counted. (Default == False)
+        exclude_reps:   If exclude_reps is True, each XLI word will only be counted
+                        once per list. If False, every repeat of a given XLI word will
+                        be counted. (Default == False)
 
         per_list:       Boolean indicating whether raw counts or average per-list
                         counts should be returned. Returns raw counts if False,
