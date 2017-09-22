@@ -88,6 +88,7 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
                     actual[trans + listLength - 1] += 1
 
         result[i, :] = actual / poss
+        result[i, poss == 0] = np.nan
 
     result[:, listLength - 1] = np.nan
 
