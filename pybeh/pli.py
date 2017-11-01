@@ -1,11 +1,11 @@
 import numpy as np
 
 
-def xli(intrusions, subjects, rec_items=None, exclude_reps=False, per_list=False):
+def pli(intrusions, subjects, rec_items=None, exclude_reps=False, per_list=False):
     """
-    XLI   Number of extra list intrusions.
+    PLI   Number of prior list intrusions.
 
-    xlis = xli(intrusions, subjects)
+    plis = pli(intrusions, subjects)
 
     INPUTS:
         intrusions:     matrix whose elements indicate PLI if
@@ -24,8 +24,8 @@ def xli(intrusions, subjects, rec_items=None, exclude_reps=False, per_list=False
                         required for excluding repetitions of the same intrusion, i.e.
                         if exclude_reps == True.
 
-        exclude_reps:   If exclude_reps is True, each XLI word will only be counted
-                        once per list. If False, every repeat of a given XLI word will
+        exclude_reps:   If exclude_reps is True, each PLI word will only be counted
+                        once per list. If False, every repeat of a given PLI word will
                         be counted. (Default == False)
 
         per_list:       Boolean indicating whether raw counts or average per-list
@@ -33,7 +33,7 @@ def xli(intrusions, subjects, rec_items=None, exclude_reps=False, per_list=False
                         average count per list if True. (Default == False)
 
     OUTPUTS:
-        xlis:           vector of total number of XLIs. Its rows are indexed
+        plis:           vector of total number of PLIs. Its rows are indexed
                         by subject.
 
     """
@@ -53,28 +53,28 @@ def xli(intrusions, subjects, rec_items=None, exclude_reps=False, per_list=False
     subjects = np.array(subjects)
     # Get list of unique participants (or other trial identifier)
     usub = np.unique(subjects)
-    # XLIs are any -1 in the intrusions matrix
-    xlis = np.array(intrusions) == -1
+    # PLIs are any value greater than 0 in the intrusions matrix
+    plis = np.array(intrusions) > 0
 
     if exclude_reps:
         rec_items = np.array(rec_items)
         result = np.zeros_like(usub, dtype=float)
         for i, subj in enumerate(usub):
-            # Get XLI map from current subject
-            cur_xlis = xlis[subjects == subj]
+            # Get PLI map from current subject
+            cur_plis = plis[subjects == subj]
             cur_recs = rec_items[subjects == subj]
-            for j, row in enumerate(cur_xlis):
+            for j, row in enumerate(cur_plis):
                 # Identify the index of the first occurrence of each unique recall in a trial
                 _, indx = np.unique(cur_recs[j], return_index=True)
-                # Count the number of unique XLIs using these indices
+                # Count the number of unique PLIs using these indices
                 result[i] += np.sum(row[indx])
-            # Convert raw counts to average XLIs per trial if desired
+            # Convert raw counts to average PLIs per trial if desired
             if per_list:
-                result[i] = result[i] / cur_xlis.shape[0]
+                result[i] = result[i] / cur_plis.shape[0]
         result = result.tolist()
     else:
-        # Count the XLIs from each subject
-        result = [np.sum(xlis[subjects == subj, :]) for subj in usub] if not per_list \
-            else [np.sum(xlis[subjects == subj, :]) / xlis[subjects == subj].shape[0] for subj in usub]
+        # Count the PLIs from each subject
+        result = [np.sum(plis[subjects == subj, :]) for subj in usub] if not per_list \
+            else [np.sum(plis[subjects == subj, :]) / plis[subjects == subj].shape[0] for subj in usub]
 
     return result
