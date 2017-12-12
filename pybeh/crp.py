@@ -48,10 +48,10 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
         raise Exception('You must pass a list length.')
     elif len(recalls) != len(subjects):
         raise Exception('recalls matrix must have the same number of rows as subjects.')
-    if not (lag_num > 0):
-        raise ValueError('lag number needs to be positive')
-    if lag_num >= listLength:
-        raise ValueError('Lag number too big')
+    if lag_num is None:
+        lag_num = listLength - 1
+    elif lag_num < 1 or lag_num >= listLength or not isinstance(lag_num, int):
+        raise ValueError('Lag number needs to be a positive integer that is less than the list length.')
 
     # Convert recalls and subjects to numpy arrays
     recalls = np.array(recalls)
