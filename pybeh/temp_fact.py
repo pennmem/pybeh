@@ -1,5 +1,6 @@
 from __future__ import division
 import numpy as np
+from pybeh.mask_maker import make_clean_recalls_mask2d
 
 def temp_fact(recalls=None, subjects=None, listLength=None):
     """
@@ -23,40 +24,53 @@ def temp_fact(recalls=None, subjects=None, listLength=None):
                     for each subject.
     """
     if recalls is None:
-        raise Exception('You must pass a recall_itemnos matrix.')
+        raise Exception('You must pass a recalls matrix.')
     elif subjects is None:
         raise Exception('You must pass a subjects vector.')
     elif listLength is None:
         raise Exception('You must pass a list length.')
     elif len(recalls) != len(subjects):
         raise Exception('recalls matrix must have the same number of rows as subjects.')
-    final_data = []
-    subject = np.unique(subjects)
-    for subject_index in range(len(subject)):
-        total = 0
-        count = 0
-        for subj in range(len(subjects)):
-            if subjects[subj] == subject[subject_index]:
-                seen = []
-            for serial_pos in range(len(recalls[0])):
-                if recalls[subj][serial_pos] != 0 and recalls[subj][serial_pos] != -1 and recalls[subj][
-                    serial_pos] not in seen:
-                    seen.append(recalls[subj][serial_pos])
-                    possibles = [abs(item - recalls[subj][serial_pos]) for item in range(1, listLength + 1) if
-                                 item not in seen]
-                    if serial_pos + 1 < len(recalls[0]) and recalls[subj][serial_pos + 1] != 0 and recalls[subj][
-                                serial_pos + 1] != -1 and recalls[subj][serial_pos + 1] not in seen:
-                        if temp_percentile_rank(abs(recalls[subj][serial_pos + 1] - recalls[subj][serial_pos]),
-                                                possibles) is not None:
-                            total += temp_percentile_rank(
-                                abs(recalls[subj][serial_pos + 1] - recalls[subj][serial_pos]),
-                                possibles)
-                            count += 1
 
-        if count != 0:
-            final_data.append(total / count)
-        else:
-            final_data.append(0)
+    # Convert recalls and subjects to numpy arrays if they are not arrays already
+    recalls = np.array(recalls)
+    subjects = np.array(subjects)
+
+    # Initialize range for possible next recalls, based on list length
+    possibles_range = range(1, listLength + 1)
+
+    # Initialize arrays to store each participant's results
+    usub = np.unique(subjects)
+    total = np.zeros_like(usub, dtype=float)
+    count = np.zeros_like(usub, dtype=float)
+
+    # Identify locations of all correct recalls (not PLI, ELI, or repetition)
+    clean_recalls_mask = np.array(make_clean_recalls_mask2d(recalls))
+
+    # Calculate temporal factor score for each trial
+    for i, trial_data in enumerate(recalls):
+        seen = []
+        subj_ind = np.where(usub == subjects[i])[0][0]  # Identify the current subject's index in the total and count arrays
+        # Loop over recalls on current trial
+        for j, serialpos in enumerate(trial_data[:-1]):
+            seen.append(serialpos)
+            # Only count transition if both recalls involved are correct
+            if clean_recalls_mask[i, j] and clean_recalls_mask[i, j+1]:
+                # Identify possible transitions
+                possibles = [abs(item - serialpos) for item in possibles_range if item not in seen]
+                # Identify actual transition
+                next_serialpos = trial_data[j + 1]
+                actual = abs(next_serialpos - serialpos)
+                # Find percentile rank of actual size of transition among possible transition sizes
+                ptile_rank = temp_percentile_rank(actual, possibles)
+                # Add transition to the appropriate participant's score
+                if ptile_rank is not None:
+                    total[subj_ind] += ptile_rank
+                    count[subj_ind] += 1
+
+    # Find temporal factor scores as the participants' average transition scores
+    final_data = total / count
+
     return final_data
 
 #Helper function to return the percentile rank of the input within the possible inputs.
