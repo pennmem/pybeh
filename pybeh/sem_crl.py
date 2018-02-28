@@ -18,7 +18,6 @@ def sem_crl(recalls = None, times = None, recalls_itemnos = None, pres_itemnos =
     elif len(recalls_itemnos) != len(subjects):
         raise Exception('recalls matrix must have the same number of rows as subjects.')
 
-    bin_total = [0] * n_bins
     bin_times = [0] * n_bins
     bin_counts = [0] * n_bins
     bin_val = [0] * n_bins
@@ -41,8 +40,6 @@ def sem_crl(recalls = None, times = None, recalls_itemnos = None, pres_itemnos =
                         if np.isnan(sem_sims[(int)(recalls_itemnos[subj][sp] - 1)][(int)(recalls_itemnos[subj][sp + 1] - 1)]) != True:
                             add_to_bin(sem_sims[int(recalls_itemnos[subj][sp] - 1)][int(recalls_itemnos[subj][sp + 1] - 1)],
                                        times[subj][sp+1] - times[subj][sp], all_val, bin_val, bin_times, bin_counts)
-                            for i in poss_bin(encounter, sp, all_val, subj, sem_sims, pres_itemnos, recalls_itemnos, listLength):
-                                bin_total[i] += 1
 
     bin_mean = [0] * n_bins
     crl = [0] * n_bins
@@ -52,10 +49,10 @@ def sem_crl(recalls = None, times = None, recalls_itemnos = None, pres_itemnos =
             bin_mean[index] = 0
         else:
             bin_mean[index] = bin_val[index] / float(bin_counts[index])
-        if bin_total[index] == 0:
+        if bin_counts[index] == 0:
             crl[index] = 0
         else:
-            crl[index] = bin_times[index] / float(bin_total[index])
+            crl[index] = bin_times[index] / float(bin_counts[index])
     return bin_mean, crl
 
 """helper function to chunk sequence into equally sized bins"""
@@ -85,16 +82,3 @@ def add_to_bin(sem_sim_val, trans_time, bin, bin_val, bin_times, bin_counts):
     bin_val[find_bin(sem_sim_val, bin)] += sem_sim_val
     bin_counts[find_bin(sem_sim_val, bin)] += 1
     bin_times[find_bin(sem_sim_val, bin)] += trans_time
-
-
-"""function that returns the possible bins for next item """
-
-
-def poss_bin(encounter, sp, bin, subj, sem_sims, pres_itemnos, recalls_itemnos, listLength):
-    temp = []
-    for index in range(listLength):
-        if index+1 not in encounter:
-            if not np.isnan(sem_sims[int(recalls_itemnos[subj][sp])-1][int(pres_itemnos[subj][index])-1]):
-                if find_bin(sem_sims[int(recalls_itemnos[subj][sp])-1][int(pres_itemnos[subj][index])-1], bin) not in temp:
-                    temp.append(find_bin(sem_sims[int(recalls_itemnos[subj][sp]) -1][int(pres_itemnos[subj][index])-1], bin))
-    return temp
