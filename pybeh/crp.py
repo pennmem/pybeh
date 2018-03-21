@@ -3,7 +3,7 @@ import numpy as np
 from pybeh.mask_maker import make_clean_recalls_mask2d
 
 
-def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
+def crp(recalls=None, subjects=None, listLength=None, lag_num=None, skip_first_n=0):
     """
     %CRP   Conditional response probability as a function of lag (lag-CRP).
     %
@@ -24,6 +24,15 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
     %                   from 1:list_length.
     %
     %         lag_num:  a scalar indicating the max number of lag to keep track
+    %
+    %    skip_first_n:  an integer indicating the number of recall transitions to
+    %                   to ignore from the start of the recall period, for the
+    %                   purposes of calculating the CRP. this can be useful to avoid
+    %                   biasing your results, as the first 2-3 transitions are
+    %                   almost always temporally clustered. note that the first
+    %                   n recalls will still count as already recalled words for
+    %                   the purposes of determining which transitions are possible.
+    %                   (DEFAULT=0)
     %
     %
     %  OUTPUTS:
@@ -52,6 +61,8 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
         lag_num = listLength - 1
     elif lag_num < 1 or lag_num >= listLength or not isinstance(lag_num, int):
         raise ValueError('Lag number needs to be a positive integer that is less than the list length.')
+    if not isinstance(skip_first_n, int):
+        raise ValueError('skip_first_n must be an integer.')
 
     # Convert recalls and subjects to numpy arrays
     recalls = np.array(recalls)
@@ -79,7 +90,7 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None):
             for k, rec in enumerate(trial_recs[:-1]):
                 seen.add(rec)
                 # Only increment transition counts if the current and next recall are BOTH correct recalls
-                if clean_recalls_mask[j, k] and clean_recalls_mask[j, k + 1]:
+                if clean_recalls_mask[j, k] and clean_recalls_mask[j, k + 1] and k >= skip_first_n:
                     next_rec = trial_recs[k + 1]
                     pt = np.array([trans for trans in range(1 - rec, listLength + 1 - rec) if rec + trans not in seen], dtype=int)
                     poss[pt + listLength - 1] += 1

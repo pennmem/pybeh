@@ -2,7 +2,7 @@ from __future__ import division
 import numpy as np
 from pybeh.mask_maker import make_clean_recalls_mask2d
 
-def temp_fact(recalls=None, subjects=None, listLength=None):
+def temp_fact(recalls=None, subjects=None, listLength=None, skip_first_n=0):
     """
     returns a Lag-based temporal clustering factor for each subject
 
@@ -19,6 +19,15 @@ def temp_fact(recalls=None, subjects=None, listLength=None):
         list_length:a scalar indicating the number of serial positions in the
                     presented lists.  serial positions are assumed to run
                     from 1:list_length.
+
+       skip_first_n:  an integer indicating the number of recall transitions to
+                      to ignore from the start of the recall period, for the
+                      purposes of calculating the temporal factor. this can be useful
+                      to avoid biasing your results, as the first 2-3 transitions are
+                      almost always temporally clustered. note that the first n recalls
+                      will still count as already recalled words for the purposes of
+                      determining which transitions are possible. (DEFAULT=0)
+
     OUTPUTS:
         temp_facts: a vector of temporal clustering factors, one
                     for each subject.
@@ -31,6 +40,8 @@ def temp_fact(recalls=None, subjects=None, listLength=None):
         raise Exception('You must pass a list length.')
     elif len(recalls) != len(subjects):
         raise Exception('recalls matrix must have the same number of rows as subjects.')
+    if not isinstance(skip_first_n, int):
+        raise ValueError('skip_first_n must be an integer.')
 
     # Convert recalls and subjects to numpy arrays if they are not arrays already
     recalls = np.array(recalls)
@@ -55,7 +66,7 @@ def temp_fact(recalls=None, subjects=None, listLength=None):
         for j, serialpos in enumerate(trial_data[:-1]):
             seen.append(serialpos)
             # Only count transition if both recalls involved are correct
-            if clean_recalls_mask[i, j] and clean_recalls_mask[i, j+1]:
+            if clean_recalls_mask[i, j] and clean_recalls_mask[i, j+1] and j >= skip_first_n:
                 # Identify possible transitions
                 possibles = [abs(item - serialpos) for item in possibles_range if item not in seen]
                 # Identify actual transition

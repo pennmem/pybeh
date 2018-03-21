@@ -3,7 +3,7 @@ import numpy as np
 from pybeh.mask_maker import make_clean_recalls_mask2d
 
 
-def crl(recalls=None, times=None, subjects=None, listLength=None, lag_num=None):
+def crl(recalls=None, times=None, subjects=None, listLength=None, lag_num=None, skip_first_n=0):
     """
     CRL  Inter-response time as a function of lag.
 
@@ -24,6 +24,12 @@ def crl(recalls=None, times=None, subjects=None, listLength=None, lag_num=None):
         subjects   - subject number associated with each trial
         listLength - number of words in the list
         lag_num    - lag number to output
+        skip_first_n - an integer indicating the number of recall transitions to
+                       to ignore from the start of the recall period, for the
+                       purposes of calculating the CRL. this can be useful to avoid
+                       biasing your results, as the first 2-3 transitions are
+                       almost always temporally clustered with short IRTs.
+                       (DEFAULT=0)
 
 
     OUTPUT ARGS:
@@ -41,6 +47,8 @@ def crl(recalls=None, times=None, subjects=None, listLength=None, lag_num=None):
         lag_num = listLength - 1
     elif lag_num < 1 or lag_num >= listLength or not isinstance(lag_num, int):
         raise ValueError('Lag number needs to be a positive integer that is less than the list length.')
+    if not isinstance(skip_first_n, int):
+        raise ValueError('skip_first_n must be an integer.')
 
     # Convert recalls and subjects to numpy arrays
     recalls = np.array(recalls)
@@ -66,11 +74,9 @@ def crl(recalls=None, times=None, subjects=None, listLength=None, lag_num=None):
         clean_recalls_mask = np.array(make_clean_recalls_mask2d(cur_recs))
         # For each trial that matches that identifier
         for j, trial_recs in enumerate(cur_recs):
-            seen = set()
             for k, rec in enumerate(trial_recs[:-1]):
-                seen.add(rec)
                 # Only increment transition and timing counts if the current and next recall are BOTH correct recalls
-                if clean_recalls_mask[j, k] and clean_recalls_mask[j, k + 1]:
+                if clean_recalls_mask[j, k] and clean_recalls_mask[j, k + 1] and k >= skip_first_n:
                     next_rec = trial_recs[k + 1]
                     trans = next_rec - rec
                     trans_time = cur_times[j, k+1] - cur_times[j, k]
