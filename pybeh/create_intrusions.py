@@ -41,26 +41,37 @@ def intrusions(rec_itemnos= None, pres_itemnos= None, subjects= None, sessions= 
     result = copy.deepcopy(rec_itemnos)
     for num, list in enumerate(rec_itemnos):
         for index, item in enumerate(list):
-            #make extralist intrusions -1
+            # Extra-list intrusions
             if item < 0:
                 result[num][index] = -1
                 #make non-recalls 0
+            # Non-recalls (coming from zero padding in recalls matrix)
             elif item == 0:
                 result[num][index] = 0
-                #make valid recall 0
+            # Correct recalls
             elif item in pres_itemnos[num]:
                 result[num][index] = 0
+            # Prior-list intrusions; may also be an extra-list intrusion that happens to be in the wordpool
             else:
-                #make prior-list intrusion the number of lists previous the item was presented
+                # Start by assuming the word is an ELI that happens to be in the wordpool
+                result[num][index] = -1
+
+                # Loop backwards over previous lists from the current subject and session to determine whether the word
+                # is a PLI. If it is, replace the -1 we just wrote with a positive integer indicating the number of
+                # lists back that the PLI was made.
                 count = 1
-                while num - count >= 0 :
+                while num - count >= 0:
                     if subjects[num] == subjects[num - count] and sessions[num] == sessions[num - count]:
-                        if item in pres_itemnos[num -count]:
+                        # If the word was presented "count" lists back, then mark it as a PLI
+                        if item in pres_itemnos[num - count]:
                             result[num][index] = count
                             break
+                        # Otherwise, keep looping backwards through the session
                         else:
                             count += 1
+                    # If we go back far enough that we reach a different session or subject, then the word is an ELI
+                    # that happens to also be in the wordpool.
                     else:
-                        result[num][index] = -1
                         break
+
     return result
