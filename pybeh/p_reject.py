@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-import mask_maker as mask
+import pybeh.mask_maker as mask
 
 def p_reject(rejects_matrix = None, subject = None, rec_mask = None, recalls = None):
     """

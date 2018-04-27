@@ -1,7 +1,7 @@
 import numpy as np
-from events2data import events2data
-from make_recalls_matrix import make_recalls_matrix
-from create_intrusions import intrusions
+from .events2data import events2data
+from .make_recalls_matrix import make_recalls_matrix
+from .create_intrusions import intrusions
 
 def create_data(events=None, trial_field=None):
 

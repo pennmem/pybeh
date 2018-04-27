@@ -1,8 +1,7 @@
 from __future__ import division
 import numpy as np
-import scipy.io as sio
-import mask_maker as mask
-from matplotlib import pyplot as plt
+import pybeh.mask_maker as mask
+
 
 def p_stop_op(recalls = None, subject = None, time = None, record_time = None, exit_time_thresh = None, rec_mask = None):
     """

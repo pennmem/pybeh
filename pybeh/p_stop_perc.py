@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-import mask_maker as mask
+import pybeh.mask_maker as mask
 
 def p_stop_perc(recalls = None, subject = None, time = None, record_time = None, exit_time_thresh = None, rec_mask = None):
     """
