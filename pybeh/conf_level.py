@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 
+
 def conf_level(events, level):
     """
     INPUTS:

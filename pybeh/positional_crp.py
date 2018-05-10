@@ -1,6 +1,6 @@
 from __future__ import division
 import numpy as np
-import mask_maker as mask
+import pybeh.mask_maker as mask
 
 def positional_crp(recalls = None, subject = None,  list_length = None, rec_mask = None):
     """
