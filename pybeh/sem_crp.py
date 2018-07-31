@@ -18,9 +18,9 @@ def sem_crp(recalls = None, recalls_itemnos = None, pres_itemnos = None, subject
         raise Exception('recalls matrix must have the same number of rows as subjects.')
 
     # Make sure that all input arrays and matrices are numpy arrays
-    recalls = np.array(recalls)
-    recalls_itemnos = np.array(recalls_itemnos)
-    pres_itemnos = np.array(pres_itemnos)
+    recalls = np.array(recalls, dtype=int)
+    recalls_itemnos = np.array(recalls_itemnos, dtype=int)
+    pres_itemnos = np.array(pres_itemnos, dtype=int)
     subjects = np.array(subjects)
     sem_sims = np.array(sem_sims)
 
