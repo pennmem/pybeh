@@ -36,6 +36,7 @@ def sem_crp(recalls = None, recalls_itemnos = None, pres_itemnos = None, subject
 
     # Convert recalled item numbers to the corresponding indices of the similarity matrix by subtracting 1
     recalls_itemnos -= 1
+    pres_itemnos -= 1
 
     usub = np.unique(subjects)
     bin_means = np.zeros((len(usub), n_bins))
