@@ -1,7 +1,8 @@
 from __future__ import division
 import numpy as np
+from pybeh.mask_maker import make_clean_recalls_mask2d
 
-def sem_crp(recalls = None, recalls_itemnos = None, pres_itemnos = None, subjects = None, sem_sims = None, n_bins = None, listLength = None):
+def sem_crp(recalls = None, recalls_itemnos = None, pres_itemnos = None, subjects = None, sem_sims = None, n_bins = 10, listLength = None):
     """sanity check"""
     if recalls_itemnos is None:
         raise Exception('You must pass a recalls-by-item-numbers matrix.')
@@ -11,89 +12,74 @@ def sem_crp(recalls = None, recalls_itemnos = None, pres_itemnos = None, subject
         raise Exception('You must pass a semantic similarity matrix.')
     elif subjects is None:
         raise Exception('You must pass a subjects vector.')
-    elif n_bins is None:
-        n_bins = 10
     elif listLength is None:
         raise Exception('You must pass a listLength')
     elif len(recalls_itemnos) != len(subjects):
         raise Exception('recalls matrix must have the same number of rows as subjects.')
 
-    bin_total = [0] * n_bins
-    bin_count = [0] * n_bins
-    bin_val = [0] * n_bins
+    # Make sure that all input arrays and matrices are numpy arrays
+    recalls = np.array(recalls)
+    recalls_itemnos = np.array(recalls_itemnos)
+    pres_itemnos = np.array(pres_itemnos)
+    subjects = np.array(subjects)
+    sem_sims = np.array(sem_sims)
 
-    """find all values in similarity matrix"""
-    all_val = [sem_sims[item1][item2] for item1 in range(len(sem_sims)) for item2 in range(len(sem_sims[0]))]
-    all_val = np.sort(all_val)
-    all_val = all_val[~np.isnan(all_val)]
-    all_val = list(chunkIt(all_val, n_bins))
+    # Set diagonal of the similarity matrix to nan
+    np.fill_diagonal(sem_sims, np.nan)
+    # Sort and split all similarities into equally sized bins
+    all_sim = sem_sims.flatten()
+    all_sim = np.sort(all_sim[~np.isnan(all_sim)])
+    bins = np.array_split(all_sim, n_bins)
+    bins = [b[0] for b in bins]
+    # Convert the similarity matrix to bin numbers for easy bin lookup later
+    bin_sims = np.digitize(sem_sims, bins) - 1
 
-    for subj in range(len(recalls)):
-        encounter = []
-        for sp in range(len(recalls[0])):
-            if recalls[subj][sp] > 0 and recalls[subj][sp] < listLength + 1 and recalls[subj][sp] not in encounter:
-                encounter.append(recalls[subj][sp])
-                if sp + 1 < len(recalls[0]):
-                    if recalls[subj][sp + 1] > 0 and recalls[subj][sp + 1] < listLength + 1 and (
-                                recalls[subj][sp + 1] != recalls[subj][sp]) and (
-                        recalls[subj][sp + 1] not in encounter):
+    # Convert recalled item numbers to the corresponding indices of the similarity matrix by subtracting 1
+    recalls_itemnos -= 1
 
-                        if np.isnan(sem_sims[(int)(recalls_itemnos[subj][sp] - 1)][(int)(recalls_itemnos[subj][sp + 1] - 1)]) != True:
-                            add_to_bin(sem_sims[int(recalls_itemnos[subj][sp] - 1)][int(recalls_itemnos[subj][sp + 1] - 1)],
-                                        all_val, bin_val, bin_count)
-                            for i in poss_bin(encounter, sp, all_val, subj, sem_sims, pres_itemnos, recalls_itemnos, listLength):
-                                bin_total[i] += 1
+    usub = np.unique(subjects)
+    bin_means = np.zeros((len(usub), n_bins))
+    crp = np.zeros((len(usub), n_bins))
+    # For each subject
+    for i, subj in enumerate(usub):
+        # Create a filter to select only the current subject's data
+        subj_mask = subjects == subj
+        subj_recalls = recalls[subj_mask]
+        subj_rec_itemnos = recalls_itemnos[subj_mask]
+        subj_pres_itemnos = pres_itemnos[subj_mask]
 
-    bin_mean = [0] * n_bins
-    crp = [0] * n_bins
+        # Create trials x items matrix where item j, k indicates whether the kth recall on trial j was a correct recall
+        clean_recalls_mask = np.array(make_clean_recalls_mask2d(subj_recalls))
 
-    for index in range(n_bins):
-        if bin_count[index] == 0:
-            bin_mean[index] = 0
-        else:
-            bin_mean[index] = bin_val[index] / float(bin_count[index])
-        if bin_total[index] == 0:
-            crp[index] = 0
-        else:
-            crp[index] = bin_count[index] / float(bin_total[index])
-    return bin_mean, crp
+        # Setup counts for number of possible and actual transitions, as well as the sim value of actual transitions
+        actual = np.zeros(n_bins)
+        poss = np.zeros(n_bins)
+        val = np.zeros(n_bins)
 
-"""helper function to chunk sequence into equally sized bins"""
+        # For each of the current subject's trials
+        for j, trial_recs in enumerate(subj_recalls):
+            seen = set()
+            # For each recall on the current trial
+            for k, rec in enumerate(trial_recs[:-1]):
+                seen.add(rec)
+                # Only increment transition counts if the current and next recall are BOTH correct recalls
+                if clean_recalls_mask[j, k] and clean_recalls_mask[j, k+1]:
+                    this_recno = subj_rec_itemnos[j, k]
+                    next_recno = subj_rec_itemnos[j, k+1]
+                    # Lookup semantic similarity and its bin between current recall and next recall
+                    sim = sem_sims[this_recno, next_recno]
+                    b = bin_sims[this_recno, next_recno]
+                    actual[b] += 1
+                    val[b] += sim
 
+                    # Get a list of not-yet-recalled word numbers
+                    poss_rec = [subj_pres_itemnos[j][x] for x in range(listLength) if x+1 not in seen]
+                    # Lookup the similarity bins between the current recall and all possible correct recalls
+                    poss_trans = np.unique([bin_sims[this_recno, itemno] for itemno in poss_rec])
+                    for b in poss_trans:
+                        poss[b] += 1
 
-def chunkIt(seq, num):
-    avg = len(seq) / float(num)
-    out = []
-    last = 0.0
+        crp[i, :] = actual / poss  # CRP is calculated as number of actual transitions / number of possible ones
+        bin_means[i, :] = val / actual  # Bin means are defined as the average similarity of actual transitions per bin
 
-    while last < len(seq):
-        out.append(seq[int(last):int(last + avg)])
-        last += avg
-    return out
-
-
-"""function that returns the index of bin the semantic similarity value belongs to"""
-def find_bin(sem_sim_val, bin):
-    for index in range(len(bin)):
-        if sem_sim_val >= bin[index][0] and sem_sim_val <= bin[index][len(bin[index])-1]:
-            return index
-
-"""function adds semantic similarity value to total bin count"""
-
-
-def add_to_bin(sem_sim_val, bin, bin_val, bin_count):
-    bin_val[find_bin(sem_sim_val, bin)] += sem_sim_val
-    bin_count[find_bin(sem_sim_val, bin)] += 1
-
-
-"""function that returns the possible bins for next item """
-
-
-def poss_bin(encounter, sp, bin, subj, sem_sims, pres_itemnos, recalls_itemnos, listLength):
-    temp = []
-    for index in range(listLength):
-        if index+1 not in encounter:
-            if not np.isnan(sem_sims[int(recalls_itemnos[subj][sp])-1][int(pres_itemnos[subj][index])-1]):
-                if find_bin(sem_sims[int(recalls_itemnos[subj][sp])-1][int(pres_itemnos[subj][index])-1], bin) not in temp:
-                    temp.append(find_bin(sem_sims[int(recalls_itemnos[subj][sp]) -1][int(pres_itemnos[subj][index])-1], bin))
-    return temp
+    return bin_means, crp
