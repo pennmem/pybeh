@@ -4,7 +4,7 @@ from pybeh.mask_maker import make_clean_recalls_mask2d
 
 def temp_fact(recalls=None, subjects=None, listLength=None, skip_first_n=0):
     """
-    returns a Lag-based temporal clustering factor for each subject
+    returns a Lag-based temporal clustering factor for each subject (Polyn, Norman, & Kahana, 2009)
 
     INPUTS:
         recalls:    a matrix whose elements are serial positions of recalled
@@ -89,12 +89,12 @@ def temp_fact(recalls=None, subjects=None, listLength=None, skip_first_n=0):
 
 def temp_percentile_rank(actual, possible):
     possible = sorted(possible)
-    temp = 0
+    temp = 0.
     count = 0
     for index, item in enumerate(possible):
         if item == actual and len(possible) > 1:
-            temp += (len(possible) - 1 - index) / (len(possible) - 1)
+            temp += (len(possible) - 1. - index) / (len(possible) - 1.)
             count += 1
-    if count != 0:
+    if count > 0:
         return temp / count
     return None
