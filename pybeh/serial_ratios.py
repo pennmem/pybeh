@@ -1,71 +1,39 @@
-from __future__ import division
 import numpy as np
 
-def serial_ratios(recalls=None, subject=None, min_recs=None):
+
+def serial_ratios(recalls, subjects, min_recs):
     """
-    ratios = serial_ratios(recalls_matrix, subjects, mins_recs)
+    Calculates the proportion of trials on which participants initiated recall by recalling the first min_recs items
+    presented on that trial in serial order. For instance, if min_recs = 4, trials where recall began recall with items
+    1->2->3->4 will be considered serial recall. This function can be used to help check whether participants in free
+    recall are rehearsing and performing serial recall instead.
 
-    returns a the ratio of trials in which a string of consecutive recalls of
-    length min_recs or greater occurred to trials in which it did not occur.
-
-
-    INPUTS:
-        recalls_matrix: a matrix whose elements are serial positions of recalled
-                        items. The rows of this matrix should represent recalls
-                        made by a single subject on a single trial.
-
-        subjects:       a column vector which indexes the rows of recalls_matrix
-                        with a subject number (or other identifier). That is,
-                        the recall trials of subject S should be located in
-                        recalls_matrix(find(subjects==S)
-
-        min_recs:       the minimum number of serial recalls for a subject to
-                        count as a serial recaller. For example, if min_recs = 5,
-                        subjects who recall 5 words in a row that were presented
-                        consecutively would count as a serial recaller.
-
-    OUTPUTS:
-        ratios:         The ratio, for each subject, of the number of trials on
-                        which they recalled min_recs words serially.
+    :param recalls: A trials x items matrix whose elements are the serial positions of recalled items.
+    :param subjects: An array of identifier values indicating which subject (or session) each row of the recalls matrix
+        originates from.
+    :param min_recs: The minimum number of serial recalls that must be made on a trial to be counted as serial recall.
+    :return: An array containing the fraction of trials on which each participant performed serial recall. Participants'
+        results are sorted by alphabetical order if subject identifiers were strings, or numerical order if identifiers
+        were integers.
     """
-    if recalls is None:
-        raise Exception('You must pass a recalls matrix.')
-    elif subject is None:
-        raise Exception('You must pass a subjects vector.')
-    elif min_recs is None:
-        raise Exception('You must pass a minimum recall length.')
-    elif len(recalls) != len(subject):
-        raise Exception('recalls matrix must have the same number of rows as subjects.')
+    if len(recalls) != len(subjects):
+        raise Exception('Recalls matrix must have the same number of rows as subjects.')
 
-    result = []
-    subjects = np.unique(subject)
+    usub = np.unique(subjects)
+    results = np.zeros(len(usub))
 
-    for subj in subjects:
-        yes = 0
-        total = 0
-        for subj_ind, subj_num in enumerate(subject):
-            if subj == subj_num:
-                total += 1
+    # If min_recs is greater than the maximum number of recalls anyone made, just return an array of zeros.
+    if min_recs > recalls.shape[1]:
+        return results
 
-                for index, item in enumerate(recalls[subj_ind]):
+    # Determine whether the first min_recs recalls in each trial matched the first min_recs words presented, in order.
+    # In other words, word 1 should be recalled at index 0, word 2 should be recalled at index 1, etc.
+    serial = np.ones(recalls.shape[0], dtype=bool)
+    for i in range(min_recs):
+        serial = serial & (recalls[:, i] == i + 1)
 
-                    if item > 0:
-                        count = 1
-                        while check_next(recalls[subj_ind], index):
-                            count += 1
-                            index += 1
-                        if count >= min_recs:
-                            yes += 1
-                            break
-        result.append(yes / float(total))
-    return result
+    # Calculate the proportion of trials from each subject that demonstrate serial recall
+    for i, subj in enumerate(usub):
+        results[i] = np.mean(serial[subjects == subj])
 
-def check_next(list, index):
-    """
-    returns True if next index is serially greater than previous, False if not
-    """
-    if index + 1 < len(list):
-        if list[index + 1] == list[index] + 1:
-            return True
-    return False
-
+    return results
