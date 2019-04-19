@@ -49,6 +49,6 @@ def pnr(recalls, subjects, listLength, n=0):
         for rec in subj_recs[subj_recs > 0]:
             result[i, rec - 1] += 1
         # Divide by the number of trials the participant completed
-        result[i] / len(subj_recs)
+        result[i] /= len(subj_recs)
 
     return result
