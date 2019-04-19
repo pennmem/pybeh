@@ -1,6 +1,6 @@
 import numpy as np
 
-def pnr(recalls=None, subjects=None, listLength=None, n=0):
+def pnr(recalls, subjects, listLength, n=0):
     """
     PNR   Probability of nth recall.
 
@@ -23,33 +23,32 @@ def pnr(recalls=None, subjects=None, listLength=None, n=0):
                     from 1:list_length.
 
         n:          the output position for which the probabilities of nth recall
-                    will be calculated
+                    will be calculated (Zero indexed, i.e. n=0 produces probability
+                    of first recall, n=1 produces probability of second recall, etc.)
 
 
     OUTPUTS:
         p_recalls:  a matrix of probablities.  Its columns are indexed by
                     serial position and its rows are indexed by subject.
     """
-    if recalls is None:
-        raise Exception('You must pass a recalls matrix.')
-    elif subjects is None:
-        raise Exception('You must pass a subjects vector.')
-    elif listLength is None:
-        raise Exception('You must pass a list length.')
-    elif len(recalls) != len(subjects):
-        raise Exception('recalls matrix must have the same number of rows as subjects.')
-    if n > listLength:
-        return [0 * len(recalls)]
-    subject = np.unique(subjects)
-    result = np.array([[0.] * listLength for count in range(len(subject))])
+    if len(recalls) != len(subjects):
+        raise ValueError('The recalls matrix must have the same number of rows as subjects.')
+    if n >= listLength:
+        raise ValueError('N must be less than the list length.')
 
-    for subject_index in range(len(subject)):
-        count = 0
-        for subj in range(len(subjects)):
-            if subjects[subj] == subject[subject_index]:
-                if recalls[subj][n] > 0 and recalls[subj][n] < 1 + listLength:
-                    result[subject_index][recalls[subj][n] - 1] += 1
-                count += 1
+    usub = np.unique(subjects)
+    result = np.zeros((len(usub), listLength))
 
-        result[subject_index] /= count
+    # Get the Nth recall from each trial
+    nth_recs = np.array(recalls)[:, n]
+
+    for i, subj in enumerate(usub):
+        # Select only the trials from the current subject
+        subj_recs = nth_recs[subjects == subj]
+        # Count the number of times each serial position was recalled in output position N
+        for rec in subj_recs[subj_recs > 0]:
+            result[i, rec - 1] += 1
+        # Divide by the number of trials the participant completed
+        result[i] / len(first_recs)
+
     return result
