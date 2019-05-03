@@ -40,7 +40,7 @@ def spc(recalls, subjects, listLength, start_position=None):
         subj_recalls = recalls[(subjects == subj)]
         # If filtering by recall start position, select only trials that match
         if hasattr(start_position, '__iter__'):
-            subj_recalls = subj_recalls[np.isin(subj_recalls[0], start_position), :]
+            subj_recalls = subj_recalls[np.isin(subj_recalls[:, 0], start_position), :] if subj_recalls.shape[1] > 0 else []
         if len(subj_recalls) > 0:
             # Create a matrix of ones and zeroes indicating whether each presented item was correctly recalled
             subj_recalled = np.array([np.isin(positions, trial_data) for trial_data in subj_recalls])
