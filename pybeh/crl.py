@@ -50,8 +50,9 @@ def crl(recalls=None, times=None, subjects=None, listLength=None, lag_num=None, 
     if not isinstance(skip_first_n, int):
         raise ValueError('skip_first_n must be an integer.')
 
-    # Convert recalls and subjects to numpy arrays
+    # Convert inputs to numpy arrays
     recalls = np.array(recalls)
+    times = np.array(times)
     subjects = np.array(subjects)
     # Get a list of unique subjects -- we will calculate a CRP for each
     usub = np.unique(subjects)

@@ -36,6 +36,8 @@ def pnr(recalls, subjects, listLength, n=0):
     if n >= listLength:
         raise ValueError('N must be less than the list length.')
 
+    recalls = np.array(recalls)
+    subjects = np.array(subjects)
     usub = np.unique(subjects)
     result = np.zeros((len(usub), listLength))
 

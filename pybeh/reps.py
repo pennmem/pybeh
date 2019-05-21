@@ -14,6 +14,8 @@ def reps(recalls, subjects, unique_reps=False, per_list=False):
     total number of repetitions made by each subject.
     :return: An array where each entry is the total or average (per list) number of repetitions for a participant.
     """
+    recalls = np.array(recalls)
+    subjects = np.array(subjects)
     usub = np.unique(subjects)
     result = np.zeros_like(usub, dtype=float)
 

@@ -19,6 +19,8 @@ def serial_ratios(recalls, subjects, min_recs):
     if len(recalls) != len(subjects):
         raise Exception('Recalls matrix must have the same number of rows as subjects.')
 
+    recalls = np.array(recalls)
+    subjects = np.array(subjects)
     usub = np.unique(subjects)
     results = np.zeros(len(usub))
 
