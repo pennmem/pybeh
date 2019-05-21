@@ -2,10 +2,11 @@ from __future__ import division
 import numpy as np
 import pybeh.mask_maker as mask
 
-def positional_crp(recalls = None, subject = None,  list_length = None, rec_mask = None):
+
+def positional_crp(recalls=None, subject=None,  list_length=None, rec_mask=None):
     """
     POSITIONAL_CRP  Computes conditional response probabilities of recalling
-                    an item in its correc position (i.e., its output
+                    an item in its correct position (i.e., its output
                     position and serial position should be equal), given a
                     matrix of recalled serial positions.
 

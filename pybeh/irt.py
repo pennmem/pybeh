@@ -1,5 +1,3 @@
-
-
 def irt(times=None):
     """
     IRT Inter-response time.

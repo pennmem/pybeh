@@ -2,7 +2,8 @@ from __future__ import division
 import numpy as np
 from pybeh.mask_maker import make_clean_recalls_mask2d
 
-def sem_crp(recalls = None, recalls_itemnos = None, pres_itemnos = None, subjects = None, sem_sims = None, n_bins = 10, listLength = None):
+
+def sem_crp(recalls=None, recalls_itemnos=None, pres_itemnos=None, subjects=None, sem_sims=None, n_bins=10, listLength=None):
     """sanity check"""
     if recalls_itemnos is None:
         raise Exception('You must pass a recalls-by-item-numbers matrix.')
