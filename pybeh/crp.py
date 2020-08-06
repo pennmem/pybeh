@@ -90,7 +90,7 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None, skip_first_n
             for k, rec in enumerate(trial_recs[:-1]):
                 seen.add(rec)
                 # Only increment transition counts if the current and next recall are BOTH correct recalls
-                if clean_recalls_mask[j, k] and clean_recalls_mask[j, k + 1] and k >= skip_first_n:
+                if clean_recalls_mask[j][k] and clean_recalls_mask[j][k + 1] and k >= skip_first_n:
                     next_rec = trial_recs[k + 1]
                     pt = np.array([trans for trans in range(1 - rec, listLength + 1 - rec) if rec + trans not in seen], dtype=int)
                     poss[pt + listLength - 1] += 1
@@ -98,8 +98,7 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None, skip_first_n
                     # Record the actual transition that was made
                     actual[trans + listLength - 1] += 1
 
-        result[i, :] = actual / poss
-        result[i, poss == 0] = np.nan
+        result[i, :] = [a/p if p!=0 else 0 for a,p in zip(actual, poss)]
 
     result[:, listLength - 1] = np.nan
 
