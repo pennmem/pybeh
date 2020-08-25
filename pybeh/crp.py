@@ -4,51 +4,56 @@ from pybeh.mask_maker import make_clean_recalls_mask2d
 
 
 def crp(recalls=None, subjects=None, listLength=None, lag_num=None, skip_first_n=0):
-    """
-    %CRP   Conditional response probability as a function of lag (lag-CRP).
-    %
-    %  lag_crps = crp(recalls_matrix, subjects, list_length, lag_num)
-    %
-    %  INPUTS:
-    %  recalls_matrix:  a matrix whose elements are serial positions of recalled
-    %                   items.  The rows of this matrix should represent recalls
-    %                   made by a single subject on a single trial.
-    %
-    %        subjects:  a column vector which indexes the rows of recalls_matrix
-    %                   with a subject number (or other identifier).  That is,
-    %                   the recall trials of subject S should be located in
-    %                   recalls_matrix(find(subjects==S), :)
-    %
-    %     list_length:  a scalar indicating the number of serial positions in the
-    %                   presented lists.  serial positions are assumed to run
-    %                   from 1:list_length.
-    %
-    %         lag_num:  a scalar indicating the max number of lag to keep track
-    %
-    %    skip_first_n:  an integer indicating the number of recall transitions to
-    %                   to ignore from the start of the recall period, for the
-    %                   purposes of calculating the CRP. this can be useful to avoid
-    %                   biasing your results, as the first 2-3 transitions are
-    %                   almost always temporally clustered. note that the first
-    %                   n recalls will still count as already recalled words for
-    %                   the purposes of determining which transitions are possible.
-    %                   (DEFAULT=0)
-    %
-    %
-    %  OUTPUTS:
-    %        lag_crps:  a matrix of lag-CRP values.  Each row contains the values
-    %                   for one subject.  It has as many columns as there are
-    %                   possible transitions (i.e., the length of
-    %                   (-list_length + 1) : (list_length - 1) ).
-    %                   The center column, corresponding to the "transition of
-    %                   length 0," is guaranteed to be filled with NaNs.
-    %
-    %                   For example, if list_length == 4, a row in lag_crps
-    %                   has 7 columns, corresponding to the transitions from
-    %                   -3 to +3:
-    %                   lag-CRPs:     [ 0.1  0.2  0.3  NaN  0.3  0.1  0.0 ]
-    %                   transitions:    -3   -2    -1   0    +1   +2   +3
-    """
+    '''
+    CRP   Conditional response probability as a function of lag (lag-CRP).
+    
+      lag_crps = crp(recalls_matrix, subjects, list_length, lag_num)
+    
+      INPUTS:
+             recalls:  A 2D iterable whose elements are serial positions of
+                       recalled items.  The rows of this array should
+                       represent recalls made by a single subject on a
+                       single trial.
+    
+            subjects:  A column vector which indexes the rows of "recalls"
+                       with a subject number (or other identifier).  The
+                       subject identifiers should be repeated for each
+                       row of "recalls" originating from the same subject.
+    
+         list_length:  A scalar indicating the number of serial positions in
+                       the presented lists.  Serial positions are assumed to
+                       run from 1:list_length.
+    
+             lag_num:  A scalar indicating the max number of lags to track.
+    
+        skip_first_n:  An integer indicating the number of recall
+                       transitions to ignore from the start of the recall
+                       period, for the purposes of calculating the CRP.
+                       This can be useful to avoid biasing your results, as
+                       the first 2-3 transitions are almost always
+                       temporally clustered.  Note that the first n recalls
+                       will still count as already recalled words for the
+                       purposes of determining which transitions are
+                       possible.  (DEFAULT=0)
+    
+    
+      OUTPUTS:
+            lag_crps:  A matrix of lag-CRP values.  Each row contains the
+                       values for one subject.  It has as many columns as
+                       there are possible transitions (i.e., the length of
+                       (-list_length + 1) : (list_length - 1) ).  The center
+                       column, corresponding to the "transition of length 0,"
+                       is guaranteed to be filled with NaNs.  Any lag_crps
+                       element which had no possible transitions for the
+                       input data for that subject will also have a value of
+                       NaN.
+
+                       For example, if list_length == 4, a row in lag_crps
+                       has 7 columns, corresponding to the transitions from
+                       -3 to +3:
+                       lag-CRPs:     [ 0.1  0.2  0.3  NaN  0.3  0.1  0.0 ]
+                       transitions:    -3   -2    -1   0    +1   +2   +3
+    '''
     if recalls is None:
         raise Exception('You must pass a recalls matrix.')
     elif subjects is None:
