@@ -98,7 +98,7 @@ def crp(recalls=None, subjects=None, listLength=None, lag_num=None, skip_first_n
                     # Record the actual transition that was made
                     actual[trans + listLength - 1] += 1
 
-        result[i, :] = [a/p if p!=0 else 0 for a,p in zip(actual, poss)]
+        result[i, :] = [a/p if p!=0 else np.nan for a,p in zip(actual, poss)]
 
     result[:, listLength - 1] = np.nan
 
