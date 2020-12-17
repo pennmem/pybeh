@@ -1,4 +1,38 @@
 import numpy as np
+import pandas as pd
+
+
+def get_itemno_matrices(evs, itemno_column='itemno', list_index=['subject', 'session', 'list'], fill_value=np.nan):
+    """
+    Transforms a pandas dataframe into a matrix of item id's with one row per trial, 
+    as is expected by most behavioral toolbox functions.
+    
+    Expects as input a dataframe (df) for one subject
+    
+    INPUTS:
+    evs:            The dataframe from which to extract itemnos. By default, each 
+                    distinct set of values in the (subject, session, list) columns
+                    denotes a different trial.
+                    
+    itemno_column:  The column of the dataframe where items are annotated with item numbers
+    
+    list_index:     Columns passed to pd.groupby that uniquely identify each trial
+    
+    fill_value:     The default value with which to pad missing data to align rows
+    
+    OUTPUTS:
+    A matrix of item numbers with shape (trials, max_length), where trials is determined by the
+    number of combinations of list_index coordinates in the data and max_length is determined
+    by the trial with the greatest number of items.
+    """
+    evs.loc[:, itemno_column] = evs.loc[:, itemno_column].astype(int)
+    evs['pos'] = evs.groupby(list_index).cumcount()
+    itemnos_df = pd.pivot_table(evs, values=itemno_column, 
+                                 index=list_index, 
+                                 columns='pos', fill_value=fill_value)
+    itemnos = itemnos_df.values
+    return itemnos
+
 
 def make_recalls_matrix(pres_itemnos=None, rec_itemnos=None):
     '''
