@@ -19,7 +19,7 @@ You can use [anaconda](https://docs.anaconda.com/anaconda/install/) to install t
   conda install -y numpy scipy
   ``` 
 
-If you are working on data formats commonly used by the Computational Memory Lab, it is recommended that you install use [PTSA](https://github.com/pennmem/ptsa_new) to facilitate reading in behavioral data into a format usable by the toolbox.
+If you are working on data formats commonly used by the Computational Memory Lab, it is recommended that you install use [PTSA](https://github.com/pennmem/ptsa) to facilitate reading in behavioral data into a format usable by the toolbox.
 
 To install from source, download the source code and install:
 
